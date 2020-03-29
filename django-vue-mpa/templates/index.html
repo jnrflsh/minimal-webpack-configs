@@ -1,0 +1,13 @@
+{% load render_bundle from webpack_loader %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+  {% comment %}<link rel="stylesheet" href="./dist/main.css">{% endcomment %}
+  {% render_bundle 'css/main' 'css' %}
+  </head>
+  <body>
+    <div id="app"></div>
+    {% render_bundle 'js/main' 'js' %}
+  </body>
+</html>
