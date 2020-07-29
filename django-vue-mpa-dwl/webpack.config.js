@@ -1,5 +1,6 @@
 const path = require('path')
 const webpack = require('webpack')
+const BundleTracker = require('webpack-bundle-tracker') // Outputs bundle info to json file (used by django webpack-loader)
 const VueLoaderPlugin = require('vue-loader/lib/plugin') // Needed to handle vue single file components https://vue-loader.vuejs.org/migrating.html#migrating-from-v14
 const MiniCssExtractPlugin = require('mini-css-extract-plugin') // Concat and output CSS-files
 const { CleanWebpackPlugin } = require('clean-webpack-plugin') // clean output dir on build and watch start https://github.com/johnagan/clean-webpack-plugin
@@ -11,7 +12,7 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin') // clean output d
  */
 const entries = {
   'css/main': './assets/scss/main.scss',
-  'js/main': './assets/js/main.js',
+  'js/main': './assets/js/main.js'
 }
 
 /**
@@ -22,7 +23,7 @@ const entries = {
 module.exports = (env, argv) => {
   const envMode = argv.mode || 'production'
   const isDev = envMode === 'development'
-  const outputDir = path.resolve('./static/')
+  const outputDir = path.resolve('./static/bundles/')
 
   const sharedConfig = {
     mode: envMode,
@@ -30,14 +31,28 @@ module.exports = (env, argv) => {
     entry: entries,
     output: {
       path: outputDir,
-      filename: '[name].js',
-
-      // should be same as django STATIC_URL
-      publicPath: '/static/',
-
-      // webpack should hash file chunks (but not filenames)
-      chunkFilename: "[id]-[chunkhash].js"
+      filename: '[name]-[hash].js',
+      publicPath: '/static/bundles/'
     },
+    plugins: [
+      // add support for vue single file components
+      new VueLoaderPlugin(),
+
+      // save reference to created assets
+      new BundleTracker({
+        filename: './webpack-stats.json'
+      }),
+
+      // remove outputDir before build
+      new CleanWebpackPlugin(),
+
+      // Options similar to the same options in webpackOptions.output both options are optional
+      new MiniCssExtractPlugin({
+        filename: '[name]-[hash].css',
+        chunkFilename: '[id].css',
+        ignoreOrder: false
+      })
+    ],
     module: {
       rules: [
         {
@@ -70,32 +85,13 @@ module.exports = (env, argv) => {
             'css-loader',
             'sass-loader?indentedSyntax'
           ]
-        },
-        {
-          test: /.*/,
-          include: path.resolve(__dirname, "assets/img"),
-          options: {
-            context: path.resolve(__dirname, "static/"),
-            name: "[path][name].[ext]",
-          },
-          loader: "file-loader",
-        },
+        }
       ]
     },
     resolve: {
       alias: { vue: 'vue/dist/vue.esm.js' },
       extensions: ['*', '.js', '.vue', '.json']
-    },
-    plugins: [
-      // add support for vue single file components
-      new VueLoaderPlugin(),
-
-      // remove outputDir before build
-      new CleanWebpackPlugin({ cleanStaleWebpackAssets: false }),
-
-      // Options similar to the same options in webpackOptions.output both options are optional
-      new MiniCssExtractPlugin()
-    ],
+    }
   }
 
   const prodConfig = sharedConfig
@@ -108,10 +104,16 @@ module.exports = (env, argv) => {
       new webpack.HotModuleReplacementPlugin()
     ],
     devServer: {
-      //contentBase: outputDir,
-      writeToDisk: true,
+      contentBase: outputDir,
       stats: 'minimal', // keep cli output minimal
       hot: true,
+      // redirect everything except bundles to django server
+      proxy: {
+        '!/static/bundles/**': {
+          target: 'http://localhost:8000', // points to django dev server
+          changeOrigin: true
+        }
+      }
     }
   }
 

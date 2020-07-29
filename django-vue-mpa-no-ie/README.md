@@ -1,6 +1,6 @@
-# Django MPA Vue + SCSS
+# Django MPA Vue + SCSS without IE
 
-Django + vue webpack setup as simple as possible, supports older browsers with newer es6 features like async/await etc. If you don't need this, you can go for the even more minimal version prefixed 'no-ie'.
+Django + vue webpack setup as simple as possible without support for older browsers like IE (does not compile the ES6 features). See the version without 'no-ie' for that
 
 Inspired by [Pascal Widdershovens post](https://pascalw.me/blog/2020/04/19/webpack-django.html)
  
@@ -20,8 +20,10 @@ source .venv/bin/actiate
 pip install -r requirements.txt
 npm install
 
-# start devserver on localhost:8000 (kills both processes with ctrl-c)
+# start devservers (kills both processes with ctrl-c)
 python manage.py runserver & npm start && kill $!
+
+# Dev server available on localhost:8080
 ```
 
 
@@ -30,12 +32,7 @@ python manage.py runserver & npm start && kill $!
 Quite alot of stuff! Babel and vue packages are for compiling vue single file components.
 
 | Package                 | Description                                    |
-| ----------------------- | --------------------------------------------- |
-| @babel/core             | Babel js transpilation core features           |
-| @babel/preset-env       | Smart transpilation detection (what is needed) |
-| babel-loader            | Babel webpack loader for transpiling js        |
-| @babel/runtime-corejs3  | Babel helpers,reg runtime and corejs polyfills |
-| @babel/plugin-transform-runtime | Prevents duplicate code from polyfills and helpers |
+| ----------------------- | ---------------------------------------------- |
 | clean-webpack-plugin    | Remove old transpiled bundles                  |
 | css-loader              | Webpack CSS loader (js css imports etc)        |
 | mini-css-extract-plugin | Extracts CSS from JS in separate files         |

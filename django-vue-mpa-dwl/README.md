@@ -1,13 +1,12 @@
-# Django MPA Vue + SCSS
+# Django vue MPA (multi page app)
 
-Django + vue webpack setup as simple as possible, supports older browsers with newer es6 features like async/await etc. If you don't need this, you can go for the even more minimal version prefixed 'no-ie'.
+Django site with some interactive pages using vue single file components and SCSS support. Most Django+vue guides show how to create a SPA (single page app) and use Django rest framework – This is not that!This is a pretty complex setup, but made as simple as possible.
 
-Inspired by [Pascal Widdershovens post](https://pascalw.me/blog/2020/04/19/webpack-django.html)
- 
 Features: 
-- Vue single file components
 - Hot reloading (HMR) of js components
+- Vue ES6 + Single file components
 - SCSS & SASS compilation
+- webpack-dev-server proxies all non compiled requests to Django dev server, necessary to use HMR.
 - Development and production webpack configuration
 
 ## Usage
@@ -20,17 +19,19 @@ source .venv/bin/actiate
 pip install -r requirements.txt
 npm install
 
-# start devserver on localhost:8000 (kills both processes with ctrl-c)
-python manage.py runserver & npm start && kill $!
+# start devservers
+python manage.py runserver & npm start
+
+# Dev server available on localhost:8080
 ```
 
 
 ## NPM Packages
 
-Quite alot of stuff! Babel and vue packages are for compiling vue single file components.
+Quite alot of stuff! Babel and vue packages are for compiling vue single file components. Webpack bundle tracker outputs a file used by Django webpack loader. Compiled bundles are saved as "main-[hash].js", and Django webpack loader gets the latest bundle name! Old bundles are removed by clean-webpack-plugin. 
 
 | Package                 | Description                                    |
-| ----------------------- | --------------------------------------------- |
+| ----------------------- | ---------------------------------------------- |
 | @babel/core             | Babel js transpilation core features           |
 | @babel/preset-env       | Smart transpilation detection (what is needed) |
 | babel-loader            | Babel webpack loader for transpiling js        |
@@ -45,13 +46,18 @@ Quite alot of stuff! Babel and vue packages are for compiling vue single file co
 | vue-loader              | Webpack Vue loader                             |
 | vue-template-compiler   | Webpack vue templates to js compiler           |
 | webpack                 | Webpack main package                           |
+| webpack-bundle-tracker  | Write bundle info to file for used by Django webpack loader   |
 | webpack-cli             | Webpack CLI command tool                       |
 
 ## Python Packages
 | Package               | Description                          |
 | --------------------- | ------------------------------------ | 
 | django                | Django framework                     |
+| django-webpack-loader | Loads webpack bundles via stats file | 
 
+## Simplify this config
+- django-webpack-loader, webpack-bundle-tracker and clean-webpack-plugin can be removed and output in webpack.config.js can be changed to `name.js` without hash. Files can be linked in django with regular `{% static 'static/bundles/main.js' %}`
+- webpack-dev-server can be removed and `npm run watch` can be used instead. Reloading of JS in Django by refresh in browser.
 
 ## Known issues
 - Outputs extra .js file for every scss file

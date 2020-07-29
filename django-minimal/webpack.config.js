@@ -1,6 +1,5 @@
 const path = require('path')
 const webpack = require('webpack')
-const VueLoaderPlugin = require('vue-loader/lib/plugin') // Needed to handle vue single file components https://vue-loader.vuejs.org/migrating.html#migrating-from-v14
 const MiniCssExtractPlugin = require('mini-css-extract-plugin') // Concat and output CSS-files
 const { CleanWebpackPlugin } = require('clean-webpack-plugin') // clean output dir on build and watch start https://github.com/johnagan/clean-webpack-plugin
 
@@ -10,7 +9,7 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin') // clean output d
  * - object property is the named used in bundle-tracker / django webpack loader e.g.
  */
 const entries = {
-  'css/main': './assets/scss/main.scss',
+  'css/main': './assets/css/main.css',
   'js/main': './assets/js/main.js',
 }
 
@@ -40,37 +39,7 @@ module.exports = (env, argv) => {
     },
     module: {
       rules: [
-        {
-          test: /\.vue$/,
-          loader: 'vue-loader'
-        },
-        {
-          test: /\.js$/,
-          loader: 'babel-loader',
-          exclude: /(node_modules|bower_components)/,
-          //options: { babelrc: true }
-          options: {
-            // presets-env with useBuiltsIns: usage only injects helpers/polyfills for used functions
-            presets: [
-              ['@babel/preset-env', { useBuiltIns: 'usage', corejs: '3' }]
-            ],
-            // plugin-transform-runtime reduces bundle size by only including helpers/polyfill once
-            plugins: [['@babel/plugin-transform-runtime', { corejs: '3' }]]
-          }
-        },
         { test: /\.css$/, use: [MiniCssExtractPlugin.loader, 'css-loader'] },
-        {
-          test: /\.scss$/,
-          use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader']
-        },
-        {
-          test: /\.sass$/,
-          use: [
-            MiniCssExtractPlugin.loader,
-            'css-loader',
-            'sass-loader?indentedSyntax'
-          ]
-        },
         {
           test: /.*/,
           include: path.resolve(__dirname, "assets/img"),
@@ -82,14 +51,7 @@ module.exports = (env, argv) => {
         },
       ]
     },
-    resolve: {
-      alias: { vue: 'vue/dist/vue.esm.js' },
-      extensions: ['*', '.js', '.vue', '.json']
-    },
     plugins: [
-      // add support for vue single file components
-      new VueLoaderPlugin(),
-
       // remove outputDir before build
       new CleanWebpackPlugin({ cleanStaleWebpackAssets: false }),
 
